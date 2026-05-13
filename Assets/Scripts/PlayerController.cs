@@ -9,8 +9,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private SpriteRenderer spriteRenderer;
 
     [Header("Settings")]
-    [SerializeField] private float maxHealth = 100f;
-    [SerializeField] private float health;
+    [SerializeField] public float maxHealth = 100f;
+    [SerializeField] public float health;
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpHeight = 5f;
     [SerializeField] private int doubleJumpsValue = 1;
@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isGrounded = false;
     [SerializeField] private int doubleJumps;
     [SerializeField] private float coyoteTimeCounter;
+    [SerializeField] public bool wonState = false;
 
     private void Start()
     {
@@ -70,11 +71,6 @@ public class PlayerController : MonoBehaviour
             health -= 20f;
             rb.AddForceY(knockback , ForceMode2D.Impulse);
             StartCoroutine(BlinkRed());
-
-            if (health <= 0)
-            {
-                Die();
-            }
         }
         if (collision.gameObject.CompareTag("Exit"))
         {
@@ -92,10 +88,5 @@ public class PlayerController : MonoBehaviour
     private void Jump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpHeight);
-    }
-
-    private void Die()
-    {
-        // activate the death screen here
     }
 }

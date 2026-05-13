@@ -7,18 +7,37 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float timerMinutes = 1f;
     [SerializeField] private float timerSeconds = 0f;
     [SerializeField] private float timerMiliseconds = 0f;
+    [SerializeField] private float timer = 0f;
     [SerializeField] private bool isTimerRunning = false;
 
     [Header("UI References")]
+    [SerializeField] private GameObject UI;
     [SerializeField] private TMP_Text timerText;
 
-    private float timer = 0f;
+    [Header("Player Reference")]
+    [SerializeField] private PlayerController player;
+
+
+    private GameObject DeathScreen;
+    private GameObject WinScreen;
+    private GameObject PauseScreen;
+    private GameObject GameplayScreen;
 
     private void Start()
     {
         float totalSeconds = (timerMinutes * 60f) + timerSeconds + (timerMiliseconds / 100f);
         timer = totalSeconds;
         UpdateTimerUI();
+
+        DeathScreen = UI.transform.Find("DeathScreen").gameObject;
+        WinScreen = UI.transform.Find("WinScreen").gameObject;
+        PauseScreen = UI.transform.Find("PauseScreen").gameObject;
+        PauseScreen = UI.transform.Find("GameplayScreen").gameObject;
+
+        DeathScreen.SetActive(false);
+        WinScreen.SetActive(false);
+        PauseScreen.SetActive(false);
+        GameplayScreen.SetActive(true);
     }
 
     private void Update()
@@ -53,4 +72,25 @@ public class GameManager : MonoBehaviour
         timer = 0f;
         UpdateTimerUI();
     }
+    public void Pause()
+    {
+        StopTimer();
+        PauseScreen.SetActive(true);
+    }
+    public void Unpause()
+    {
+        StartTimer();
+        PauseScreen.SetActive(false);
+    }
+    public void Death()
+    {
+        StopTimer();
+        DeathScreen.SetActive(true);
+    }
+    public void Win()
+    {
+        StopTimer();
+        WinScreen.SetActive(true);
+    }
+    
 }
