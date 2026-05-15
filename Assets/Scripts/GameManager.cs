@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using TMPro;
+using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
@@ -7,45 +8,65 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float timerMinutes = 1f;
     [SerializeField] private float timerSeconds = 0f;
     [SerializeField] private float timerMiliseconds = 0f;
-    [SerializeField] private float timer = 0f;
+    [SerializeField] private float time = 0f;
+    [SerializeField] private float timer;
     [SerializeField] private bool isTimerRunning = false;
 
     [Header("UI References")]
-    [SerializeField] private GameObject UI;
+    [SerializeField] private MenuManager menuManager;
     [SerializeField] private TMP_Text timerText;
 
     [Header("Player Reference")]
     [SerializeField] private PlayerController player;
 
-
-    private GameObject DeathScreen;
-    private GameObject WinScreen;
-    private GameObject PauseScreen;
-    private GameObject GameplayScreen;
-
     private void Start()
     {
         float totalSeconds = (timerMinutes * 60f) + timerSeconds + (timerMiliseconds / 100f);
-        timer = totalSeconds;
+        time = totalSeconds;
+        timer = time;
         UpdateTimerUI();
-
-        DeathScreen = UI.transform.Find("DeathScreen").gameObject;
-        WinScreen = UI.transform.Find("WinScreen").gameObject;
-        PauseScreen = UI.transform.Find("PauseScreen").gameObject;
-        PauseScreen = UI.transform.Find("GameplayScreen").gameObject;
-
-        DeathScreen.SetActive(false);
-        WinScreen.SetActive(false);
-        PauseScreen.SetActive(false);
-        GameplayScreen.SetActive(true);
+        isTimerRunning = false;
     }
 
     private void Update()
     {
-        if (isTimerRunning)
+        if (!isTimerRunning)
+        {
+            if (Input.anyKeyDown)
+            {
+                StartTimer();
+            }
+        } else
         {
             timer -= Time.deltaTime;
             UpdateTimerUI();
+        }
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            if (isTimerRunning)
+            {
+                menuManager.Pause();
+                StopTimer();
+            }
+            else
+            {
+                menuManager.Unpause();
+                StartTimer();
+            }
+        }
+
+        if (timer <= 0f || player.health <= 0f)
+        {
+            StopTimer();
+            timer = 0f;
+            menuManager.ActivateDeathScreen();
+        }
+
+        if (player.winState)
+        {
+            StopTimer();
+            menuManager.ActivateWinScreen();
         }
     }
 
@@ -69,28 +90,7 @@ public class GameManager : MonoBehaviour
 
     public void ResetTimer()
     {
-        timer = 0f;
+        timer = time;
         UpdateTimerUI();
     }
-    public void Pause()
-    {
-        StopTimer();
-        PauseScreen.SetActive(true);
-    }
-    public void Unpause()
-    {
-        StartTimer();
-        PauseScreen.SetActive(false);
-    }
-    public void Death()
-    {
-        StopTimer();
-        DeathScreen.SetActive(true);
-    }
-    public void Win()
-    {
-        StopTimer();
-        WinScreen.SetActive(true);
-    }
-    
 }

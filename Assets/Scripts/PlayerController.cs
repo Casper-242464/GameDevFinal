@@ -23,7 +23,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private bool isGrounded = false;
     [SerializeField] private int doubleJumps;
     [SerializeField] private float coyoteTimeCounter;
-    [SerializeField] public bool wonState = false;
+    [SerializeField] public bool winState = false;
 
     private void Start()
     {
@@ -74,7 +74,7 @@ public class PlayerController : MonoBehaviour
         }
         if (collision.gameObject.CompareTag("Exit"))
         {
-            
+            winState = true;
         }
     }
 
