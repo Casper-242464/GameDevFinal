@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Damage
   - Exit
-  - Death
   layers:
   - Default
   - TransparentFX

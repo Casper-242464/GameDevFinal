@@ -8,11 +8,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private SpriteRenderer spriteRenderer;
 
-    [Header("Компоненты Эффектов")]
+    [Header("SFX & VFX")]
     [SerializeField] private AudioSource stepAudioSource;     
     [SerializeField] private ParticleSystem dustParticles;    
 
-    [Header("Покадровая Анимация")]
+    [Header("Sprites")]
     [SerializeField] private Sprite idleSprite;               
     [SerializeField] private List<Sprite> walkSpritesList;    
     [SerializeField] private float animationFps = 10f;        
@@ -28,14 +28,13 @@ public class PlayerController : MonoBehaviour
 
     [Header("Debug & Ground Check")]
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float groundCheckRadius = 0.25f; // Уменьшили радиус, чтобы не левитировал
+    [SerializeField] private float groundCheckRadius = 0.25f;
     [SerializeField] private Transform groundCheckPoint;     
     [SerializeField] private bool isGrounded = false;
     [SerializeField] private int doubleJumps;
     [SerializeField] private float coyoteTimeCounter;
     [SerializeField] public bool winState = false;
 
-    // Динамические клавиши управления из главного меню друга
     private KeyCode leftKey;
     private KeyCode rightKey;
     private KeyCode jumpKey;
@@ -54,7 +53,6 @@ public class PlayerController : MonoBehaviour
             groundCheckPoint = transform;
         }
 
-        // Загружаем кастомные клавиши, которые игрок настроил в меню
         leftKey = (KeyCode)PlayerPrefs.GetInt("LeftKey", (int)KeyCode.A);
         rightKey = (KeyCode)PlayerPrefs.GetInt("RightKey", (int)KeyCode.D);
         jumpKey = (KeyCode)PlayerPrefs.GetInt("JumpKey", (int)KeyCode.Space);
@@ -62,7 +60,6 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        // Считываем кастомный ввод
         float moveInput = 0f;
         if (Input.GetKey(rightKey)) moveInput = 1f;
         if (Input.GetKey(leftKey)) moveInput = -1f;
@@ -70,11 +67,9 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocityX = moveInput * moveSpeed;
         isInputMoving = (moveInput != 0f);
 
-        // Поворот спрайта
         if (moveInput > 0.1f) spriteRenderer.flipX = false;
         else if (moveInput < -0.1f) spriteRenderer.flipX = true;
 
-        // Физическая проверка земли
         isGrounded = Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, groundLayer);
 
         if (isGrounded)
@@ -87,7 +82,6 @@ public class PlayerController : MonoBehaviour
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        // Кастомный прыжок по кнопке друга
         if (Input.GetKeyDown(jumpKey))
         {
             if (coyoteTimeCounter > 0f)
