@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using TMPro;
-using Unity.VisualScripting;
 
 public class GameManager : MonoBehaviour
 {
@@ -18,6 +17,7 @@ public class GameManager : MonoBehaviour
 
     [Header("Player Reference")]
     [SerializeField] private PlayerController player;
+    [SerializeField] private float abyssYThreshold = -6f; // Порог бездны приподняли для надежности
 
     private void Start()
     {
@@ -25,25 +25,26 @@ public class GameManager : MonoBehaviour
         time = totalSeconds;
         timer = time;
         UpdateTimerUI();
-        isTimerRunning = false;
+        
+        isTimerRunning = true; // ТАЙМЕР ВКЛЮЧАЕТСЯ СРАЗУ АВТОМАТИЧЕСКИ ПРИ СТАРТЕ!
         Time.timeScale = 1f;
+
+        if (player == null)
+        {
+            player = Object.FindFirstObjectByType<PlayerController>();
+        }
     }
 
     private void Update()
     {
-        if (!isTimerRunning)
-        {
-            if (Input.anyKeyDown)
-            {
-                StartTimer();
-            }
-        } else
+        if (isTimerRunning)
         {
             timer -= Time.deltaTime;
             UpdateTimerUI();
         }
 
-        if (Input.GetKeyDown(KeyCode.Escape))
+        // Пауза
+        if (Input.GetKeyDown(KeyCode.Escape) && menuManager != null)
         {
             if (isTimerRunning)
             {
@@ -57,38 +58,45 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        if (timer <= 0f || player.health <= 0f)
+        // Проверка падения в бездну или отсутствия здоровья
+        bool isDeadByAbyss = (player != null && player.transform.position.y < abyssYThreshold);
+        bool isDeadByHealth = (player != null && player.health <= 0f);
+
+        if (timer <= 0f || isDeadByHealth || isDeadByAbyss)
         {
             StopTimer();
             timer = 0f;
-            menuManager.ActivateDeathScreen();
+            if (player != null) player.health = 0f;
+            
+            if (menuManager != null)
+            {
+                menuManager.ActivateDeathScreen();
+            }
         }
 
-        if (player.winState)
+        // Проверка победы
+        if (player != null && player.winState)
         {
             StopTimer();
-            menuManager.ActivateWinScreen();
+            if (menuManager != null)
+            {
+                menuManager.ActivateWinScreen();
+            }
         }
     }
 
     private void UpdateTimerUI()
     {
+        if (timerText == null) return;
+
         int minutes = Mathf.FloorToInt(timer / 60F);
         int seconds = Mathf.FloorToInt(timer % 60F);
         int milliseconds = Mathf.FloorToInt((timer * 100F) % 100F);
         timerText.text = $"{minutes:00}:{seconds:00}:{milliseconds:00}";
     }
 
-    public void StartTimer()
-    {
-        isTimerRunning = true;
-    }
-
-    public void StopTimer()
-    {
-        isTimerRunning = false;
-    }
-
+    public void StartTimer() { isTimerRunning = true; }
+    public void StopTimer() { isTimerRunning = false; }
     public void ResetTimer()
     {
         timer = time;

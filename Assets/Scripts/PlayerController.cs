@@ -1,12 +1,21 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Rigidbody2D rb;
-    [SerializeField] private Animator animator;
     [SerializeField] private SpriteRenderer spriteRenderer;
+
+    [Header("Компоненты Эффектов")]
+    [SerializeField] private AudioSource stepAudioSource;     
+    [SerializeField] private ParticleSystem dustParticles;    
+
+    [Header("Покадровая Анимация")]
+    [SerializeField] private Sprite idleSprite;               
+    [SerializeField] private List<Sprite> walkSpritesList;    
+    [SerializeField] private float animationFps = 10f;        
 
     [Header("Settings")]
     [SerializeField] public float maxHealth = 100f;
@@ -16,36 +25,57 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private int doubleJumpsValue = 1;
     [SerializeField] private float knockback = 5f;
     [SerializeField] private float coyoteTime = 0.2f;
-    private KeyCode jumpKey;
-    private KeyCode leftKey;
-    private KeyCode rightKey;
 
-
-    [Header("Debug")]
+    [Header("Debug & Ground Check")]
     [SerializeField] private LayerMask groundLayer;
-    [SerializeField] private float groundCheckRadius = 1.2f;
+    [SerializeField] private float groundCheckRadius = 0.25f; // Уменьшили радиус, чтобы не левитировал
+    [SerializeField] private Transform groundCheckPoint;     
     [SerializeField] private bool isGrounded = false;
     [SerializeField] private int doubleJumps;
     [SerializeField] private float coyoteTimeCounter;
     [SerializeField] public bool winState = false;
 
+    // Динамические клавиши управления из главного меню друга
+    private KeyCode leftKey;
+    private KeyCode rightKey;
+    private KeyCode jumpKey;
+
+    private int currentAnimationFrame;
+    private float animationTimer;
+    private bool isInputMoving;
+
     private void Start()
     {
         health = maxHealth;
         doubleJumps = doubleJumpsValue;
-        jumpKey = (KeyCode)PlayerPrefs.GetInt("JumpKey", (int)KeyCode.Space);
+
+        if (groundCheckPoint == null)
+        {
+            groundCheckPoint = transform;
+        }
+
+        // Загружаем кастомные клавиши, которые игрок настроил в меню
         leftKey = (KeyCode)PlayerPrefs.GetInt("LeftKey", (int)KeyCode.A);
         rightKey = (KeyCode)PlayerPrefs.GetInt("RightKey", (int)KeyCode.D);
-
+        jumpKey = (KeyCode)PlayerPrefs.GetInt("JumpKey", (int)KeyCode.Space);
     }
 
     private void Update()
     {
+        // Считываем кастомный ввод
         float moveInput = 0f;
-        if (Input.GetKey(leftKey)) moveInput -= 1f;
-        if (Input.GetKey(rightKey)) moveInput += 1f;
-        rb.linearVelocityX = moveInput * moveSpeed;
+        if (Input.GetKey(rightKey)) moveInput = 1f;
+        if (Input.GetKey(leftKey)) moveInput = -1f;
 
+        rb.linearVelocityX = moveInput * moveSpeed;
+        isInputMoving = (moveInput != 0f);
+
+        // Поворот спрайта
+        if (moveInput > 0.1f) spriteRenderer.flipX = false;
+        else if (moveInput < -0.1f) spriteRenderer.flipX = true;
+
+        // Физическая проверка земли
+        isGrounded = Physics2D.OverlapCircle(groundCheckPoint.position, groundCheckRadius, groundLayer);
 
         if (isGrounded)
         {
@@ -57,6 +87,7 @@ public class PlayerController : MonoBehaviour
             coyoteTimeCounter -= Time.deltaTime;
         }
 
+        // Кастомный прыжок по кнопке друга
         if (Input.GetKeyDown(jumpKey))
         {
             if (coyoteTimeCounter > 0f)
@@ -71,25 +102,53 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        isGrounded = Physics2D.OverlapCircle(transform.position, groundCheckRadius, groundLayer);
+        bool shouldPlayEffects = (isInputMoving && isGrounded);
+        HandleAnimationAndEffects(shouldPlayEffects);
     }
 
+    private void HandleAnimationAndEffects(bool playing)
+    {
+        if (spriteRenderer == null) return;
+
+        if (playing)
+        {
+            if (walkSpritesList != null && walkSpritesList.Count > 1)
+            {
+                animationTimer += Time.deltaTime;
+                if (animationTimer >= (1f / animationFps))
+                {
+                    currentAnimationFrame++;
+                    if (currentAnimationFrame >= walkSpritesList.Count) currentAnimationFrame = 0;
+                    spriteRenderer.sprite = walkSpritesList[currentAnimationFrame];
+                    animationTimer = 0f;
+                }
+            }
+
+            if (stepAudioSource != null && !stepAudioSource.isPlaying) stepAudioSource.Play();
+            if (dustParticles != null && !dustParticles.isPlaying) dustParticles.Play();
+        }
+        else
+        {
+            if (idleSprite != null) spriteRenderer.sprite = idleSprite;
+            currentAnimationFrame = 0;
+            animationTimer = 0f;
+
+            if (stepAudioSource != null && stepAudioSource.isPlaying) stepAudioSource.Stop();
+            if (dustParticles != null && dustParticles.isPlaying) dustParticles.Stop();
+        }
+    }
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Damage"))
         {
             health -= 20f;
-            rb.AddForceY(knockback , ForceMode2D.Impulse);
+            rb.AddForceY(knockback, ForceMode2D.Impulse);
             StartCoroutine(BlinkRed());
         }
         if (collision.gameObject.CompareTag("Exit"))
         {
             winState = true;
-        }
-        if (collision.gameObject.CompareTag("Death"))
-        {
-            health -= maxHealth;
         }
     }
 
@@ -100,8 +159,18 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(0.2f);
         spriteRenderer.color = originalColor;
     }
+
     private void Jump()
     {
         rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpHeight);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        if (groundCheckPoint != null)
+        {
+            Gizmos.color = Color.green;
+            Gizmos.DrawWireSphere(groundCheckPoint.position, groundCheckRadius);
+        }
     }
 }
