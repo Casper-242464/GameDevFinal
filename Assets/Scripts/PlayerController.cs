@@ -16,6 +16,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private int doubleJumpsValue = 1;
     [SerializeField] private float knockback = 5f;
     [SerializeField] private float coyoteTime = 0.2f;
+    private KeyCode jumpKey;
+    private KeyCode leftKey;
+    private KeyCode rightKey;
+
 
     [Header("Debug")]
     [SerializeField] private LayerMask groundLayer;
@@ -29,12 +33,19 @@ public class PlayerController : MonoBehaviour
     {
         health = maxHealth;
         doubleJumps = doubleJumpsValue;
+        jumpKey = (KeyCode)PlayerPrefs.GetInt("JumpKey", (int)KeyCode.Space);
+        leftKey = (KeyCode)PlayerPrefs.GetInt("LeftKey", (int)KeyCode.A);
+        rightKey = (KeyCode)PlayerPrefs.GetInt("RightKey", (int)KeyCode.D);
+
     }
 
     private void Update()
     {
-        float moveInput = Input.GetAxis("Horizontal");
+        float moveInput = 0f;
+        if (Input.GetKey(leftKey)) moveInput -= 1f;
+        if (Input.GetKey(rightKey)) moveInput += 1f;
         rb.linearVelocityX = moveInput * moveSpeed;
+
 
         if (isGrounded)
         {
@@ -46,7 +57,7 @@ public class PlayerController : MonoBehaviour
             coyoteTimeCounter -= Time.deltaTime;
         }
 
-        if (Input.GetButtonDown("Jump"))
+        if (Input.GetKeyDown(jumpKey))
         {
             if (coyoteTimeCounter > 0f)
             {
@@ -75,6 +86,10 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Exit"))
         {
             winState = true;
+        }
+        if (collision.gameObject.CompareTag("Death"))
+        {
+            health -= maxHealth;
         }
     }
 

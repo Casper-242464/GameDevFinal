@@ -26,6 +26,7 @@ public class GameManager : MonoBehaviour
         timer = time;
         UpdateTimerUI();
         isTimerRunning = false;
+        Time.timeScale = 1f;
     }
 
     private void Update()
