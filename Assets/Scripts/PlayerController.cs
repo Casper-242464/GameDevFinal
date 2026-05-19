@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
     [Header("References")]
     [SerializeField] private Rigidbody2D rb;
     [SerializeField] private SpriteRenderer spriteRenderer;
+    [SerializeField] private Image healthBarFill;
 
     [Header("SFX & VFX")]
     [SerializeField] private AudioSource stepAudioSource;     
@@ -96,6 +98,7 @@ public class PlayerController : MonoBehaviour
             }
         }
 
+        healthBarFill.fillAmount = health / maxHealth;
         bool shouldPlayEffects = (isInputMoving && isGrounded);
         HandleAnimationAndEffects(shouldPlayEffects);
     }

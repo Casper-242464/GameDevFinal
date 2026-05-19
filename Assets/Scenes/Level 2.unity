@@ -1464,6 +1464,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 6319605922737391561, guid: a854d225838cf1649a46362a246f5b07, type: 3}
+      propertyPath: healthBarFill
+      value: 
+      objectReference: {fileID: 2091098199}
     - target: {fileID: 6518274742371294780, guid: a854d225838cf1649a46362a246f5b07, type: 3}
       propertyPath: m_LocalPosition.x
       value: -5
@@ -32065,6 +32069,17 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 6168699826977581575, guid: d2237025ea881664ca7a6baac0f288db, type: 3}
   m_PrefabInstance: {fileID: 2091098196}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2091098199 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7115215228819684802, guid: d2237025ea881664ca7a6baac0f288db, type: 3}
+  m_PrefabInstance: {fileID: 2091098196}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
 --- !u!1 &2093053089
 GameObject:
   m_ObjectHideFlags: 0
